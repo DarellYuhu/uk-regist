@@ -54,7 +54,7 @@ export default function RegistrationPage() {
   };
 
   return (
-    <div className="p-4">
+    <div>
       <Card>
         <CardHeader>
           <CardTitle>Formulir Pendaftaran</CardTitle>
