@@ -1,15 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  AudioWaveform,
-  Command,
-  FileCheck2,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-} from "lucide-react";
+import { FileCheck2 } from "lucide-react";
 
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";

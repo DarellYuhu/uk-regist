@@ -51,6 +51,7 @@ export default function RegistrationPage() {
 
   const onSubmit = (data: FormSchema) => {
     toast.success("Pendaftaran berhasil");
+    console.log(data);
   };
 
   return (
