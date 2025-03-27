@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut, PencilLine } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,6 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut, useSession } from "next-auth/react";
+import { EditProfileDialog } from "./edit-profile-dialog";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -66,6 +67,7 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <EditProfileDialog />
             <DropdownMenuItem onClick={() => signOut()}>
               <LogOut />
               Log out

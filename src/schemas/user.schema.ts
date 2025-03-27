@@ -7,3 +7,9 @@ export const createUserSchema = z.object({
   password: z.string().trim().min(1, "Required"),
   role: z.nativeEnum(Role),
 });
+
+export const updateUserSchema = z.object({
+  displayName: z.string().optional(),
+  password: z.string().optional(),
+});
+export type UpdateUserSchema = z.infer<typeof updateUserSchema>;

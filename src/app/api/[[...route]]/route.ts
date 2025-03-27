@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import { zValidator } from "@hono/zod-validator";
-import { createUserSchema } from "@/schemas/user.schema";
+import { createUserSchema, updateUserSchema } from "@/schemas/user.schema";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { registrationSchema } from "@/schemas/registration.schema";
@@ -21,6 +21,20 @@ app.post("/users", zValidator("json", createUserSchema), async (c) => {
     data: payload,
   });
 
+  return c.json(user);
+});
+
+app.patch("/users/:id", zValidator("json", updateUserSchema), async (c) => {
+  const { id } = c.req.param();
+  const payload = c.req.valid("json");
+  if (payload.password) {
+    const hash = await bcrypt.hash(payload.password, 10);
+    payload.password = hash;
+  }
+  const user = await prisma.user.update({
+    where: { id },
+    data: payload,
+  });
   return c.json(user);
 });
 

@@ -35,7 +35,7 @@ import {
   RegistrationSchema,
 } from "@/schemas/registration.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InfoIcon, MailIcon } from "lucide-react";
+import { CircleCheckIcon, InfoIcon, MailIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 export const StudentPage = () => {
@@ -59,7 +59,7 @@ export const StudentPage = () => {
   };
 
   return (
-    <div>
+    <div className="space-y-2">
       {data?.data ? (
         <div className="rounded-md border px-4 py-3">
           <p className="text-sm">
@@ -248,6 +248,18 @@ export const StudentPage = () => {
             </Button>
           </CardFooter>
         </Card>
+      )}
+      {data?.data?.status === "APPROVE" && (
+        <div className="border-eborder rounded-md border px-4 py-3">
+          <p className="text-sm">
+            <CircleCheckIcon
+              className="me-3 -mt-0.5 inline-flex text-emerald-500"
+              size={16}
+              aria-hidden="true"
+            />
+            Selamat data anda sudah diterima!
+          </p>
+        </div>
       )}
     </div>
   );
