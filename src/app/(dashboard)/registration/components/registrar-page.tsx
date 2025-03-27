@@ -8,20 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRegistrations } from "@/hooks/features/use-registrations";
-import { useCallback } from "react";
-import "@cyntler/react-doc-viewer/dist/index.css";
-import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useUpdateMedicalStatus } from "@/hooks/features/use-update-medical-status";
-import { DocViewerYuhu } from "./doc-viewer";
-import { Badge } from "@/components/ui/badge";
+import { useCallback } from "react";
+import { FromComponent } from "./form-component";
 
-export const DoctorPage = () => {
+export const RegistrarPage = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const formId = searchParams.get("formId") || "";
-  const { mutate, isPending } = useUpdateMedicalStatus();
   const { data } = useRegistrations();
 
   const createQueryString = useCallback(
@@ -33,7 +28,6 @@ export const DoctorPage = () => {
     },
     [searchParams]
   );
-
   return (
     <div className="space-y-4">
       <Select
@@ -53,37 +47,9 @@ export const DoctorPage = () => {
         </SelectContent>
       </Select>
       {formId !== "" && data && (
-        <>
-          <div className="space-x-2">
-            <Button
-              variant={"outline"}
-              className="border-green-300"
-              disabled={isPending}
-              onClick={() => mutate({ status: "APPROVE" })}
-            >
-              Approve
-            </Button>
-            <Button
-              variant={"outline"}
-              className="border-red-300"
-              disabled={isPending}
-              onClick={() => mutate({ status: "REJECT" })}
-            >
-              Reject
-            </Button>
-          </div>
-          <Badge>
-            {
-              data.data.find((item) => item.userId === formId)!.SuratDokter
-                .status
-            }
-          </Badge>
-          <DocViewerYuhu
-            uri={
-              data!.data.find((item) => item.userId === formId)!.SuratDokter.uri
-            }
-          />
-        </>
+        <FromComponent
+          item={data.data.find((item) => item.userId === formId)!}
+        />
       )}
     </div>
   );

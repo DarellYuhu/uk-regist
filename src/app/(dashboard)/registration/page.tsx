@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { StudentPage } from "./components/student-page";
 import { DoctorPage } from "./components/doctor-page";
+import { RegistrarPage } from "./components/registrar-page";
 
 export default async function RegistrationPage() {
   const session = await auth();
@@ -11,6 +12,8 @@ export default async function RegistrationPage() {
       return <StudentPage />;
     case "DOCTOR":
       return <DoctorPage />;
+    case "REGISTRAR":
+      return <RegistrarPage />;
 
     default:
       return (

@@ -48,13 +48,25 @@ app.patch(
   "/registrations/:id/medical-status",
   zValidator("json", z.object({ status: z.nativeEnum(Status) })),
   async (c) => {
-    console.log("huhi");
     const payload = c.req.valid("json");
     const { id } = c.req.param();
-    console.log(id);
     await prisma.studentProfile.update({
       where: { userId: id },
       data: { SuratDokter: { update: payload } },
+    });
+    return c.json({ message: "success" });
+  }
+);
+
+app.patch(
+  "/registrations/:id/profile-status",
+  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
+  async (c) => {
+    const payload = c.req.valid("json");
+    const { id } = c.req.param();
+    await prisma.studentProfile.update({
+      where: { userId: id },
+      data: payload,
     });
     return c.json({ message: "success" });
   }
