@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String @id @default(uuid())
+  username    String @unique
+  password    String @unique
+  displayName String @unique
+  role        Role
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  StudentProfile StudentProfile?
+}
+
+model StudentProfile {
+  id               Int          @id @default(autoincrement())
+  namaIjazah       String
+  jenisKelamin     String
+  email            String
+  noTelp           String
+  propinsiDomisili String
+  asalSekolah      String
+  programStudi     String
+  SuratDokter      SuratDokter?
+  status           Status
+  userId           String       @unique
+  User             User         @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SuratDokter {
+  profileId      Int            @unique
+  StudentProfile StudentProfile @relation(fields: [profileId], references: [id])
+  status         Status
+  fileId         String         @unique
+  File           File           @relation(fields: [fileId], references: [id])
+}
+
+model File {
+  id   String @id @default(uuid())
+  name String
+  path String
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  SuratDokter SuratDokter?
+}
+
+enum Role {
+  STUDENT
+  DOCTOR
+  REGISTRAR
+}
+
+enum Status {
+  APPROVE
+  REJECT
+  WAITING
+}

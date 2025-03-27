@@ -1,0 +1,26 @@
+name: uk-regist-dev
+
+services:
+  postgres-dev:
+    image: postgres:latest
+    env_file:
+      - .env.development
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_dev_data:/var/lib/postgresql/data
+
+  minio-dev:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env.development
+    volumes:
+      - minio_dev_data:/data
+    command: server --console-address ":9001" /data
+
+volumes:
+  db_dev_data:
+  minio_dev_data:
