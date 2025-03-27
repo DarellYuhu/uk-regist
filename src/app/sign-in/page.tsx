@@ -44,7 +44,7 @@ export default function SignInPage() {
     try {
       await signIn("credentials", { ...data, redirectTo: "/" });
       toast.success("Login successful");
-    } catch (error) {
+    } catch {
       toast.error("Invalid credential");
     }
   };

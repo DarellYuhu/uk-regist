@@ -35,7 +35,7 @@ model StudentProfile {
   asalSekolah      String
   programStudi     String
   SuratDokter      SuratDokter?
-  status           Status
+  status           Status       @default(WAITING)
   userId           String       @unique
   User             User         @relation(fields: [userId], references: [id])
 
@@ -45,8 +45,8 @@ model StudentProfile {
 
 model SuratDokter {
   profileId      Int            @unique
-  StudentProfile StudentProfile @relation(fields: [profileId], references: [id])
-  status         Status
+  StudentProfile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  status         Status         @default(WAITING)
   fileId         String         @unique
   File           File           @relation(fields: [fileId], references: [id])
 }
