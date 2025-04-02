@@ -1,5 +1,5 @@
 import { UpdateUserSchema } from "@/schemas/user.schema";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
