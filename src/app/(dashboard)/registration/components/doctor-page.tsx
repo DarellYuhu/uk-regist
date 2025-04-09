@@ -15,6 +15,15 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUpdateMedicalStatus } from "@/hooks/features/use-update-medical-status";
 import { DocViewerYuhu } from "./doc-viewer";
 import { Badge } from "@/components/ui/badge";
+import { capitalize } from "lodash";
+import { FormComponent } from "./form-component";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export const DoctorPage = () => {
   const router = useRouter();
@@ -54,35 +63,46 @@ export const DoctorPage = () => {
       </Select>
       {formId !== "" && data && (
         <>
-          <div className="space-x-2">
-            <Button
-              variant={"outline"}
-              className="border-green-300"
-              disabled={isPending}
-              onClick={() => mutate({ status: "APPROVE" })}
-            >
-              Approve
-            </Button>
-            <Button
-              variant={"outline"}
-              className="border-red-300"
-              disabled={isPending}
-              onClick={() => mutate({ status: "REJECT" })}
-            >
-              Reject
-            </Button>
-          </div>
-          <Badge>
-            {
-              data.data.find((item) => item.userId === formId)!.SuratDokter
-                .status
-            }
-          </Badge>
-          <DocViewerYuhu
-            uri={
-              data!.data.find((item) => item.userId === formId)!.SuratDokter.uri
-            }
+          <FormComponent
+            item={data.data.find((item) => item.userId === formId)!}
           />
+          <Card>
+            <CardHeader>
+              <CardTitle>Surat Dokter</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Badge>
+                {capitalize(
+                  data.data.find((item) => item.userId === formId)!
+                    .doctorApproval
+                )}
+              </Badge>
+              <DocViewerYuhu
+                uri={
+                  data!.data.find((item) => item.userId === formId)!
+                    .UploadedDocuments.suratDokter.uri
+                }
+              />
+            </CardContent>
+            <CardFooter className="space-x-2 justify-end">
+              <Button
+                variant={"outline"}
+                className="border-green-300"
+                disabled={isPending}
+                onClick={() => mutate({ status: "APPROVE" })}
+              >
+                Approve
+              </Button>
+              <Button
+                variant={"outline"}
+                className="border-red-300"
+                disabled={isPending}
+                onClick={() => mutate({ status: "REJECT" })}
+              >
+                Reject
+              </Button>
+            </CardFooter>
+          </Card>
         </>
       )}
     </div>

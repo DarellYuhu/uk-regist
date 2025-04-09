@@ -10,7 +10,8 @@ import {
 import { useRegistrations } from "@/hooks/features/use-registrations";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
-import { FromComponent } from "./form-component";
+import { FormComponent } from "./form-component";
+import { DocumentTab } from "./document-tab";
 
 export const RegistrarPage = () => {
   const router = useRouter();
@@ -47,9 +48,17 @@ export const RegistrarPage = () => {
         </SelectContent>
       </Select>
       {formId !== "" && data && (
-        <FromComponent
-          item={data.data.find((item) => item.userId === formId)!}
-        />
+        <>
+          <FormComponent
+            item={data.data.find((item) => item.userId === formId)!}
+          />
+          <DocumentTab
+            item={
+              data.data.find((item) => item.userId === formId)!
+                .UploadedDocuments
+            }
+          />
+        </>
       )}
     </div>
   );

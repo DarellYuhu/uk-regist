@@ -25,30 +25,49 @@ model User {
   StudentProfile StudentProfile?
 }
 
-model StudentProfile {
-  id               Int          @id @default(autoincrement())
-  namaIjazah       String
-  jenisKelamin     String
-  email            String
-  noTelp           String
-  propinsiDomisili String
-  asalSekolah      String
-  programStudi     String
-  SuratDokter      SuratDokter?
-  status           Status       @default(WAITING)
-  userId           String       @unique
-  User             User         @relation(fields: [userId], references: [id])
+model NomorUrut {
+  id Int @unique @default(autoincrement())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model SuratDokter {
+model StudentProfile {
+  id                  Int      @id @default(autoincrement())
+  nomorIndukMahasiswa String?  @unique
+  namaIjazah          String
+  jenisKelamin        String
+  email               String
+  noTelp              String
+  propinsiDomisili    String
+  asalSekolah         String
+  programStudi        String
+  status              Status   @default(WAITING)
+  doctorApproval      Status   @default(WAITING)
+  tempatLahir         String
+  tanggalLahir        DateTime @db.Date
+
+  userId String @unique
+  User   User   @relation(fields: [userId], references: [id])
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  UploadedDocuments UploadedDocuments?
+}
+
+model UploadedDocuments {
   profileId      Int            @unique
-  StudentProfile StudentProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  status         Status         @default(WAITING)
-  fileId         String         @unique
-  File           File           @relation(fields: [fileId], references: [id])
+  StudentProfile StudentProfile @relation(fields: [profileId], references: [id])
+  suratDokter    String         @unique
+  SuratDokter    File           @relation("surat_dokter", fields: [suratDokter], references: [id])
+  ijazah         String         @unique
+  Ijazah         File           @relation("ijazah", fields: [ijazah], references: [id])
+  kartuKeluarga  String         @unique
+  KartuKeluarga  File           @relation("kartu_keluarga", fields: [kartuKeluarga], references: [id])
+  aktaKelahiran  String         @unique
+  AktaKelahiran  File           @relation("akta_kelahiran", fields: [aktaKelahiran], references: [id])
+  suratBaptis    String?        @unique
+  SuratBaptis    File?          @relation("surat_baptis", fields: [suratBaptis], references: [id])
 }
 
 model File {
@@ -56,9 +75,14 @@ model File {
   name String
   path String
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  SuratDokter SuratDokter?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  SuratDokter   UploadedDocuments? @relation("surat_dokter")
+  Ijazah        UploadedDocuments? @relation("ijazah")
+  KartuKeluarga UploadedDocuments? @relation("kartu_keluarga")
+  AktaKelahiran UploadedDocuments? @relation("akta_kelahiran")
+  SuratBaptis   UploadedDocuments? @relation("surat_baptis")
 }
 
 enum Role {

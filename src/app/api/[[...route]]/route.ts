@@ -5,9 +5,12 @@ import { createUserSchema, updateUserSchema } from "@/schemas/user.schema";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { registrationSchema } from "@/schemas/registration.schema";
-import { minio } from "@/lib/minio";
 import { z } from "zod";
-import { Status } from "@prisma/client";
+import { Prisma, Status } from "@prisma/client";
+import { uploadFile } from "@/utils/uploadFile";
+import { minio } from "@/lib/minio";
+import { generateNim } from "@/utils/generateNim";
+import { HTTPException } from "hono/http-exception";
 
 export const runtime = "nodejs";
 
@@ -40,18 +43,65 @@ app.patch("/users/:id", zValidator("json", updateUserSchema), async (c) => {
 
 app.get("/registrations", async (c) => {
   const data = await prisma.studentProfile.findMany({
-    include: { SuratDokter: { include: { File: true } } },
+    include: {
+      UploadedDocuments: {
+        include: {
+          SuratDokter: true,
+          AktaKelahiran: true,
+          Ijazah: true,
+          KartuKeluarga: true,
+          StudentProfile: true,
+          SuratBaptis: true,
+        },
+      },
+    },
   });
   const normalized = await Promise.all(
     data.map(async (item) => ({
       ...item,
-      SuratDokter: {
-        ...item.SuratDokter,
-        uri: await minio.presignedUrl(
-          "GET",
-          "file",
-          item.SuratDokter!.File.name
-        ),
+      UploadedDocuments: {
+        suratDokter: {
+          ...item.UploadedDocuments?.SuratDokter,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.SuratDokter?.name
+          ),
+        },
+        ijazah: {
+          ...item.UploadedDocuments?.Ijazah,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.Ijazah?.name
+          ),
+        },
+        kartuKeluarga: {
+          ...item.UploadedDocuments?.KartuKeluarga,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.KartuKeluarga?.name
+          ),
+        },
+        aktaKelahiran: {
+          ...item.UploadedDocuments?.AktaKelahiran,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.AktaKelahiran?.name
+          ),
+        },
+        suratBaptis: item.UploadedDocuments!.SuratBaptis
+          ? {
+              ...item.UploadedDocuments?.SuratBaptis,
+              uri: await minio.presignedUrl(
+                "GET",
+                "file",
+                item.UploadedDocuments!.SuratBaptis?.name
+              ),
+            }
+          : null,
       },
     }))
   );
@@ -66,7 +116,7 @@ app.patch(
     const { id } = c.req.param();
     await prisma.studentProfile.update({
       where: { userId: id },
-      data: { SuratDokter: { update: payload } },
+      data: { doctorApproval: payload.status },
     });
     return c.json({ message: "success" });
   }
@@ -76,12 +126,28 @@ app.patch(
   "/registrations/:id/profile-status",
   zValidator("json", z.object({ status: z.nativeEnum(Status) })),
   async (c) => {
-    const payload = c.req.valid("json");
+    const { status } = c.req.valid("json");
+    const payload: Prisma.StudentProfileUpdateInput = { status };
     const { id } = c.req.param();
+    const latest = await prisma.nomorUrut.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    const user = await prisma.studentProfile.findUniqueOrThrow({
+      where: { userId: id },
+    });
+    if (user.status !== "WAITING")
+      throw new HTTPException(400, { message: "Registrasi sudah di proses" });
+    if (payload.status === "APPROVE")
+      payload.nomorIndukMahasiswa = generateNim(
+        user.programStudi,
+        latest?.id ?? 0
+      );
     await prisma.studentProfile.update({
       where: { userId: id },
       data: payload,
     });
+    if (payload.status === "APPROVE")
+      await prisma.nomorUrut.create({ data: { id: latest?.id ?? 0 + 1 } });
     return c.json({ message: "success" });
   }
 );
@@ -99,18 +165,58 @@ app.post(
   zValidator("form", registrationSchema),
   async (c) => {
     const { id } = c.req.param();
-    const { suratDokter, ...payload } = c.req.valid("form");
-    const arrBuf = await suratDokter.arrayBuffer();
-    const newName = `${Date.now()}_${suratDokter.name}`;
-    const buffer = Buffer.from(arrBuf);
-    await minio.putObject("file", newName, buffer, suratDokter.size);
+    const {
+      suratDokter,
+      ijazah,
+      kartuKeluarga,
+      aktaKelahiran,
+      suratBaptis,
+      ...payload
+    } = c.req.valid("form");
+    const sd = await uploadFile(suratDokter);
+    const i = await uploadFile(ijazah);
+    const kk = await uploadFile(kartuKeluarga);
+    const ak = await uploadFile(aktaKelahiran);
+    let sb = null;
+    if (suratBaptis) sb = await uploadFile(suratBaptis);
     await prisma.studentProfile.create({
       data: {
         ...payload,
         userId: id,
-        SuratDokter: {
+        UploadedDocuments: {
           create: {
-            File: { create: { name: newName, path: `file/${newName}` } },
+            SuratDokter: {
+              create: {
+                name: sd,
+                path: `file/${sd}`,
+              },
+            },
+            Ijazah: {
+              create: {
+                name: i,
+                path: `file/${i}`,
+              },
+            },
+            KartuKeluarga: {
+              create: {
+                name: kk,
+                path: `file/${kk}`,
+              },
+            },
+            AktaKelahiran: {
+              create: {
+                name: ak,
+                path: `file/${ak}`,
+              },
+            },
+            SuratBaptis: sb
+              ? {
+                  create: {
+                    name: sb,
+                    path: `file/${sb}`,
+                  },
+                }
+              : undefined,
           },
         },
       },
@@ -118,19 +224,6 @@ app.post(
     return c.json({ message: "success" });
   }
 );
-
-// app.post("/auth/sign-in", zValidator("json", SignInSchema), async (c) => {
-//   const payload = c.req.valid("json");
-//   const user = await prisma.user
-//     .findUniqueOrThrow({ where: { username: payload.username } })
-//     .catch(() => {
-//       throw new HTTPException(401, { message: "Invalid credential" });
-//     });
-//   const verified = await bcrypt.compare(payload.password, user.password);
-//   if (!verified)
-//     throw new HTTPException(401, { message: "Invalid credential" });
-//   return c.json(user);
-// });
 
 export const GET = handle(app);
 export const POST = handle(app);

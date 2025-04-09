@@ -24,6 +24,15 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Role } from "@prisma/client";
+import { capitalize } from "lodash";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
@@ -32,18 +41,23 @@ export default function SignInPage() {
       z.object({
         username: z.string().trim().min(1, "Required"),
         password: z.string().trim().min(1, "Required"),
+        role: z.string().trim().min(1, "Required"),
       })
     ),
     defaultValues: {
       password: "",
       username: "",
+      role: "",
     },
   });
 
-  const onSubmit = async (data: { username: string; password: string }) => {
+  const onSubmit = async (data: {
+    username: string;
+    password: string;
+    role: string;
+  }) => {
     try {
       await signIn("credentials", { ...data, redirectTo: "/" });
-      toast.success("Login successful");
     } catch {
       toast.error("Invalid credential");
     }
@@ -91,6 +105,34 @@ export default function SignInPage() {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <Input {...field} />
+                        </FormControl>
+                        <FormDescription />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Login as</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.values(Role).map((role, idx) => (
+                                <SelectItem value={role} key={idx}>
+                                  {capitalize(role)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormDescription />
                         <FormMessage />

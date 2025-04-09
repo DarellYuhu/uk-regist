@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
-import { User } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 
 declare module "next-auth" {
   /**
@@ -23,11 +23,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         username: {},
         password: {},
+        role: {},
       },
       authorize: async (credentials) => {
         let user = null;
         user = await prisma.user.findUnique({
-          where: { username: credentials.username as string },
+          where: {
+            username: credentials.username as string,
+            role: credentials.role as Role,
+          },
         });
         if (!user) return null;
         const verified = bcrypt.compareSync(

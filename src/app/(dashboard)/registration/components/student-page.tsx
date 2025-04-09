@@ -1,5 +1,6 @@
 "use client";
 
+import DatePicker from "@/components/date-picker";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -51,6 +52,8 @@ export const StudentPage = () => {
       propinsiDomisili: "",
       asalSekolah: "",
       programStudi: "",
+      tempatLahir: "",
+      tanggalLahir: new Date(),
     },
   });
 
@@ -220,6 +223,36 @@ export const StudentPage = () => {
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-2 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="tempatLahir"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tempat Lahir</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tanggalLahir"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tanggal Lahir</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            onChange={(v) => field.onChange(v?.toDate("UTC"))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="suratDokter"
@@ -235,6 +268,84 @@ export const StudentPage = () => {
                         />
                       </FormControl>
                       <FormDescription>Image or PDF</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ijazah"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ijazah</FormLabel>
+                      <FormControl>
+                        <FileUploader
+                          maxSize={1024 * 1024 * 10}
+                          onValueChange={(val) => field.onChange(val[0])}
+                          accept={{ "application/pdf": [] }}
+                          multiple={false}
+                        />
+                      </FormControl>
+                      <FormDescription>Image or PDF</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="kartuKeluarga"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kartu Keluarga</FormLabel>
+                      <FormControl>
+                        <FileUploader
+                          maxSize={1024 * 1024 * 10}
+                          onValueChange={(val) => field.onChange(val[0])}
+                          accept={{ "application/pdf": [] }}
+                          multiple={false}
+                        />
+                      </FormControl>
+                      <FormDescription>Image or PDF</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="aktaKelahiran"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Akta Kelahiran</FormLabel>
+                      <FormControl>
+                        <FileUploader
+                          maxSize={1024 * 1024 * 10}
+                          onValueChange={(val) => field.onChange(val[0])}
+                          accept={{ "application/pdf": [] }}
+                          multiple={false}
+                        />
+                      </FormControl>
+                      <FormDescription>Image or PDF</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="suratBaptis"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Surat Baptis</FormLabel>
+                      <FormControl>
+                        <FileUploader
+                          maxSize={1024 * 1024 * 10}
+                          onValueChange={(val) => field.onChange(val[0])}
+                          accept={{ "application/pdf": [] }}
+                          multiple={false}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Image or PDF | Khusus untuk beragama Advent
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

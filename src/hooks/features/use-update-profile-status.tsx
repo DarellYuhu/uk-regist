@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -18,7 +18,8 @@ export const useUpdateProfileStatus = () => {
     onSuccess() {
       toast.success("Profile status updated");
     },
-    onError() {
+    onError(err) {
+      if (err instanceof AxiosError) return toast.error(err.response?.data);
       toast.error("Failed to update profile status");
     },
   });
