@@ -7,7 +7,6 @@ import {
   DateValue,
   Dialog,
   Group,
-  Label,
   Popover,
 } from "react-aria-components";
 
