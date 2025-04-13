@@ -1,6 +1,7 @@
 "use client";
 
 import { type LucideIcon } from "lucide-react";
+import { IconBaseProps } from "react-icons";
 
 import {
   SidebarGroup,
@@ -16,7 +17,7 @@ export function NavProjects({
   projects: {
     name: string;
     url: string;
-    icon: LucideIcon;
+    icon: React.ElementType<IconBaseProps> | LucideIcon;
   }[];
 }) {
   return (

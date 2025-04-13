@@ -1,17 +1,16 @@
 import { auth } from "@/lib/auth";
-import { StudentPage } from "./components/student-page";
-import { StudentList } from "./components/student-list";
+import { DoctorPage } from "./components/doctor-page";
+import { RegistrarPage } from "./components/registrar-page";
 
-export default async function RegistrationPage() {
+export default async function ProfileIdPage() {
   const session = await auth();
   if (!session?.user) return null;
 
   switch (session.user.role) {
-    case "STUDENT":
-      return <StudentPage />;
     case "DOCTOR":
+      return <DoctorPage />;
     case "REGISTRAR":
-      return <StudentList />;
+      return <RegistrarPage />;
 
     default:
       return (

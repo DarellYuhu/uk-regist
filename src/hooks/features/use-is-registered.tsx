@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 
-export const useRegistrations = () => {
+export const useIsRegistered = () => {
   const searchParams = useSearchParams();
   const search = searchParams.get("search");
 
@@ -11,7 +11,7 @@ export const useRegistrations = () => {
     queryKey: ["registrations", search || ""],
     queryFn: async () => {
       const data = await axios.get<Data>("/api/registrations", {
-        params: { search },
+        params: { search, isRegistered: "true" },
       });
       return data.data;
     },

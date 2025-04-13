@@ -13,7 +13,6 @@ import { generateNim } from "@/utils/generateNim";
 import { HTTPException } from "hono/http-exception";
 
 export const runtime = "nodejs";
-
 const app = new Hono().basePath("/api");
 
 app.post("/users", zValidator("json", createUserSchema), async (c) => {
@@ -23,7 +22,6 @@ app.post("/users", zValidator("json", createUserSchema), async (c) => {
   const user = await prisma.user.create({
     data: payload,
   });
-
   return c.json(user);
 });
 
@@ -40,117 +38,6 @@ app.patch("/users/:id", zValidator("json", updateUserSchema), async (c) => {
   });
   return c.json(user);
 });
-
-app.get("/registrations", async (c) => {
-  const data = await prisma.studentProfile.findMany({
-    include: {
-      UploadedDocuments: {
-        include: {
-          SuratDokter: true,
-          AktaKelahiran: true,
-          Ijazah: true,
-          KartuKeluarga: true,
-          StudentProfile: true,
-          SuratBaptis: true,
-        },
-      },
-    },
-  });
-  const normalized = await Promise.all(
-    data.map(async (item) => ({
-      ...item,
-      UploadedDocuments: {
-        suratDokter: {
-          ...item.UploadedDocuments?.SuratDokter,
-          uri: await minio.presignedUrl(
-            "GET",
-            "file",
-            item.UploadedDocuments!.SuratDokter?.name
-          ),
-        },
-        ijazah: {
-          ...item.UploadedDocuments?.Ijazah,
-          uri: await minio.presignedUrl(
-            "GET",
-            "file",
-            item.UploadedDocuments!.Ijazah?.name
-          ),
-        },
-        kartuKeluarga: {
-          ...item.UploadedDocuments?.KartuKeluarga,
-          uri: await minio.presignedUrl(
-            "GET",
-            "file",
-            item.UploadedDocuments!.KartuKeluarga?.name
-          ),
-        },
-        aktaKelahiran: {
-          ...item.UploadedDocuments?.AktaKelahiran,
-          uri: await minio.presignedUrl(
-            "GET",
-            "file",
-            item.UploadedDocuments!.AktaKelahiran?.name
-          ),
-        },
-        suratBaptis: item.UploadedDocuments!.SuratBaptis
-          ? {
-              ...item.UploadedDocuments?.SuratBaptis,
-              uri: await minio.presignedUrl(
-                "GET",
-                "file",
-                item.UploadedDocuments!.SuratBaptis?.name
-              ),
-            }
-          : null,
-      },
-    }))
-  );
-  return c.json({ message: "success", data: normalized });
-});
-
-app.patch(
-  "/registrations/:id/medical-status",
-  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
-  async (c) => {
-    const payload = c.req.valid("json");
-    const { id } = c.req.param();
-    await prisma.studentProfile.update({
-      where: { userId: id },
-      data: { doctorApproval: payload.status },
-    });
-    return c.json({ message: "success" });
-  }
-);
-
-app.patch(
-  "/registrations/:id/profile-status",
-  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
-  async (c) => {
-    const { status } = c.req.valid("json");
-    const payload: Prisma.StudentProfileUpdateInput = { status };
-    const { id } = c.req.param();
-    const latest = await prisma.nomorUrut.findFirst({
-      orderBy: { createdAt: "desc" },
-    });
-    const user = await prisma.studentProfile.findUniqueOrThrow({
-      where: { userId: id },
-    });
-    if (user.status !== "WAITING")
-      throw new HTTPException(400, { message: "Registrasi sudah di proses" });
-    if (payload.status === "APPROVE")
-      payload.nomorIndukMahasiswa = generateNim(
-        user.programStudi,
-        latest?.id ?? 0
-      );
-    await prisma.studentProfile.update({
-      where: { userId: id },
-      data: payload,
-    });
-    if (payload.status === "APPROVE")
-      await prisma.nomorUrut.create({ data: { id: latest?.id ?? 0 + 1 } });
-    return c.json({ message: "success" });
-  }
-);
 
 app.get("/users/:id/registrations", async (c) => {
   const { id } = c.req.param();
@@ -221,6 +108,208 @@ app.post(
         },
       },
     });
+    return c.json({ message: "success" });
+  }
+);
+
+app.get("/registrations", async (c) => {
+  const search = c.req.query("search");
+  const isRegistered = c.req.query("isRegistered");
+  const query: Prisma.StudentProfileFindManyArgs["where"] = {};
+  if (search) {
+    query.namaIjazah = {
+      search,
+    };
+  }
+
+  if (isRegistered === "true") {
+    query.AND = [
+      {
+        status: "APPROVE",
+      },
+      {
+        doctorApproval: "APPROVE",
+      },
+    ];
+  }
+  const data = await prisma.studentProfile.findMany({
+    where: query,
+    include: {
+      UploadedDocuments: {
+        include: {
+          SuratDokter: true,
+          AktaKelahiran: true,
+          Ijazah: true,
+          KartuKeluarga: true,
+          StudentProfile: true,
+          SuratBaptis: true,
+        },
+      },
+    },
+  });
+  const normalized = await Promise.all(
+    data.map(async (item) => ({
+      ...item,
+      UploadedDocuments: {
+        suratDokter: {
+          ...item.UploadedDocuments?.SuratDokter,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.SuratDokter?.name
+          ),
+        },
+        ijazah: {
+          ...item.UploadedDocuments?.Ijazah,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.Ijazah?.name
+          ),
+        },
+        kartuKeluarga: {
+          ...item.UploadedDocuments?.KartuKeluarga,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.KartuKeluarga?.name
+          ),
+        },
+        aktaKelahiran: {
+          ...item.UploadedDocuments?.AktaKelahiran,
+          uri: await minio.presignedUrl(
+            "GET",
+            "file",
+            item.UploadedDocuments!.AktaKelahiran?.name
+          ),
+        },
+        suratBaptis: item.UploadedDocuments!.SuratBaptis
+          ? {
+              ...item.UploadedDocuments?.SuratBaptis,
+              uri: await minio.presignedUrl(
+                "GET",
+                "file",
+                item.UploadedDocuments!.SuratBaptis?.name
+              ),
+            }
+          : null,
+      },
+    }))
+  );
+  return c.json({ message: "success", data: normalized });
+});
+
+app.get("/registrations/:id", async (c) => {
+  const { id } = c.req.param();
+  const data = await prisma.studentProfile
+    .findUniqueOrThrow({
+      where: { id: +id },
+      include: {
+        UploadedDocuments: {
+          include: {
+            SuratDokter: true,
+            AktaKelahiran: true,
+            Ijazah: true,
+            KartuKeluarga: true,
+            StudentProfile: true,
+            SuratBaptis: true,
+          },
+        },
+      },
+    })
+    .catch(() => {
+      throw new HTTPException(404, { message: "Data not found" });
+    });
+  const normalized = {
+    ...data,
+    UploadedDocuments: {
+      suratDokter: {
+        ...data.UploadedDocuments?.SuratDokter,
+        uri: await minio.presignedUrl(
+          "GET",
+          "file",
+          data.UploadedDocuments!.SuratDokter?.name
+        ),
+      },
+      ijazah: {
+        ...data.UploadedDocuments?.Ijazah,
+        uri: await minio.presignedUrl(
+          "GET",
+          "file",
+          data.UploadedDocuments!.Ijazah?.name
+        ),
+      },
+      kartuKeluarga: {
+        ...data.UploadedDocuments?.KartuKeluarga,
+        uri: await minio.presignedUrl(
+          "GET",
+          "file",
+          data.UploadedDocuments!.KartuKeluarga?.name
+        ),
+      },
+      aktaKelahiran: {
+        ...data.UploadedDocuments?.AktaKelahiran,
+        uri: await minio.presignedUrl(
+          "GET",
+          "file",
+          data.UploadedDocuments!.AktaKelahiran?.name
+        ),
+      },
+      suratBaptis: data.UploadedDocuments!.SuratBaptis
+        ? {
+            ...data.UploadedDocuments?.SuratBaptis,
+            uri: await minio.presignedUrl(
+              "GET",
+              "file",
+              data.UploadedDocuments!.SuratBaptis?.name
+            ),
+          }
+        : null,
+    },
+  };
+  return c.json({ message: "success", data: normalized });
+});
+
+app.patch(
+  "/registrations/:id/medical-status",
+  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
+  async (c) => {
+    const payload = c.req.valid("json");
+    const { id } = c.req.param();
+    await prisma.studentProfile.update({
+      where: { userId: id },
+      data: { doctorApproval: payload.status },
+    });
+    return c.json({ message: "success" });
+  }
+);
+
+app.patch(
+  "/registrations/:id/profile-status",
+  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
+  async (c) => {
+    const { status } = c.req.valid("json");
+    const payload: Prisma.StudentProfileUpdateInput = { status };
+    const { id } = c.req.param();
+    const latest = await prisma.nomorUrut.findFirst({
+      orderBy: { createdAt: "desc" },
+    });
+    const user = await prisma.studentProfile.findUniqueOrThrow({
+      where: { userId: id },
+    });
+    if (user.status !== "WAITING")
+      throw new HTTPException(400, { message: "Registrasi sudah di proses" });
+    if (payload.status === "APPROVE")
+      payload.nomorIndukMahasiswa = generateNim(
+        user.programStudi,
+        latest?.id ?? 0
+      );
+    await prisma.studentProfile.update({
+      where: { userId: id },
+      data: payload,
+    });
+    if (payload.status === "APPROVE")
+      await prisma.nomorUrut.create({ data: { id: latest?.id ?? 0 + 1 } });
     return c.json({ message: "success" });
   }
 );

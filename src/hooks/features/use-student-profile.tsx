@@ -1,19 +1,19 @@
 import { StudentProfile } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
-export const useRegistrations = () => {
-  const searchParams = useSearchParams();
-  const search = searchParams.get("search");
+export const useStudentProfile = () => {
+  const params = useParams();
 
   return useQuery({
-    queryKey: ["registrations", search || ""],
+    queryKey: ["student-profile", params.profileId],
+    enabled: !!params.profileId,
     queryFn: async () => {
-      const data = await axios.get<Data>("/api/registrations", {
-        params: { search },
-      });
-      return data.data;
+      const { data } = await axios.get<Data>(
+        `/api/registrations/${params.profileId}`
+      );
+      return data;
     },
   });
 };
@@ -24,9 +24,9 @@ type Document = {
   uri: string;
 };
 
-export type Data = {
+type Data = {
   message: string;
-  data: (StudentProfile & {
+  data: StudentProfile & {
     UploadedDocuments: {
       suratDokter: Document;
       ijazah: Document;
@@ -34,5 +34,5 @@ export type Data = {
       aktaKelahiran: Document;
       suratBaptis: Document | null;
     };
-  })[];
+  };
 };

@@ -9,9 +9,6 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Button } from "@/components/ui/button";
-import { IoMdArrowBack } from "react-icons/io";
-import { useRouter } from "next/navigation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +21,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const route = useRouter();
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
@@ -35,9 +31,9 @@ export default function DashboardLayout({
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
                 {/* <Separator orientation="vertical" className="mr-2 h-4" /> */}
-                <Button onClick={() => route.back()} variant={"outline"}>
+                {/* <Button onClick={() => route.back()} variant={"outline"}>
                   <IoMdArrowBack /> Back
-                </Button>
+                </Button> */}
               </div>
             </header>
             <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
