@@ -1,16 +1,17 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 export const useUpdateMedicalStatus = () => {
-  const searchParams = useSearchParams();
-  const formId = searchParams.get("formId");
+  const params = useParams();
+  const profileId = params.profileId;
 
   return useMutation({
     mutationFn: async (payload: { status: string }) => {
+      console.log(profileId);
       const { data } = await axios.patch(
-        `/api/registrations/${formId}/medical-status`,
+        `/api/registrations/${profileId}/medical-status`,
         payload
       );
       return data;

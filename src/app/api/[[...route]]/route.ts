@@ -276,8 +276,9 @@ app.patch(
   async (c) => {
     const payload = c.req.valid("json");
     const { id } = c.req.param();
+    console.log(payload, id);
     await prisma.studentProfile.update({
-      where: { userId: id },
+      where: { id: +id },
       data: { doctorApproval: payload.status },
     });
     return c.json({ message: "success" });
@@ -295,7 +296,7 @@ app.patch(
       orderBy: { createdAt: "desc" },
     });
     const user = await prisma.studentProfile.findUniqueOrThrow({
-      where: { userId: id },
+      where: { id: +id },
     });
     if (user.status !== "WAITING")
       throw new HTTPException(400, { message: "Registrasi sudah di proses" });
@@ -305,11 +306,13 @@ app.patch(
         latest?.id ?? 0
       );
     await prisma.studentProfile.update({
-      where: { userId: id },
+      where: { id: +id },
       data: payload,
     });
     if (payload.status === "APPROVE")
-      await prisma.nomorUrut.create({ data: { id: latest?.id ?? 0 + 1 } });
+      await prisma.nomorUrut.create({
+        data: { id: latest?.id ? latest.id + 1 : 0 + 1 },
+      });
     return c.json({ message: "success" });
   }
 );
