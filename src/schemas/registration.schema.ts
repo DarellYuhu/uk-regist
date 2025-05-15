@@ -9,6 +9,9 @@ export const registrationSchema = z.object({
   asalSekolah: z.string().trim().min(1, "Required"),
   programStudi: z.string().trim().min(1, "Required"),
   tempatLahir: z.string().trim().min(1, "Required"),
+  alamat: z.string().trim().min(1, "Required"),
+  testMatematika: z.coerce.number().max(100).min(0),
+  testBahasaInggris: z.coerce.number().max(100).min(0),
   tanggalLahir: z.union([z.date(), z.string()]),
 
   suratDokter: z.instanceof(File),

@@ -1,4 +1,4 @@
-import { StudentProfile } from "@prisma/client";
+import { RejectionMessage, StudentProfile } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useParams } from "next/navigation";
@@ -27,6 +27,7 @@ type Document = {
 type Data = {
   message: string;
   data: StudentProfile & {
+    RejectionMessage?: RejectionMessage;
     UploadedDocuments: {
       suratDokter: Document;
       ijazah: Document;

@@ -8,7 +8,10 @@ export const useUpdateMedicalStatus = () => {
   const profileId = params.profileId;
 
   return useMutation({
-    mutationFn: async (payload: { status: string }) => {
+    mutationFn: async (payload: {
+      status: "APPROVE" | "REJECT";
+      comments?: string;
+    }) => {
       console.log(profileId);
       const { data } = await axios.patch(
         `/api/registrations/${profileId}/medical-status`,

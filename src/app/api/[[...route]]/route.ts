@@ -205,6 +205,7 @@ app.get("/registrations/:id", async (c) => {
     .findUniqueOrThrow({
       where: { id: +id },
       include: {
+        RejectionMessage: true,
         UploadedDocuments: {
           include: {
             SuratDokter: true,
@@ -272,11 +273,25 @@ app.get("/registrations/:id", async (c) => {
 
 app.patch(
   "/registrations/:id/medical-status",
-  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
+  zValidator(
+    "json",
+    z.object({ status: z.nativeEnum(Status), comments: z.string().optional() })
+  ),
   async (c) => {
     const payload = c.req.valid("json");
     const { id } = c.req.param();
     console.log(payload, id);
+    if (payload.comments)
+      await prisma.rejectionMessage.upsert({
+        where: { studentProfileId: +id },
+        update: {
+          doctor: payload.comments,
+        },
+        create: {
+          studentProfileId: +id,
+          doctor: payload.comments,
+        },
+      });
     await prisma.studentProfile.update({
       where: { id: +id },
       data: { doctorApproval: payload.status },
@@ -287,9 +302,12 @@ app.patch(
 
 app.patch(
   "/registrations/:id/profile-status",
-  zValidator("json", z.object({ status: z.nativeEnum(Status) })),
+  zValidator(
+    "json",
+    z.object({ status: z.nativeEnum(Status), comments: z.string().optional() })
+  ),
   async (c) => {
-    const { status } = c.req.valid("json");
+    const { status, comments } = c.req.valid("json");
     const payload: Prisma.StudentProfileUpdateInput = { status };
     const { id } = c.req.param();
     const latest = await prisma.nomorUrut.findFirst({
@@ -305,6 +323,18 @@ app.patch(
         user.programStudi,
         latest?.id ?? 0
       );
+    await prisma.rejectionMessage.upsert({
+      create: {
+        studentProfileId: +id,
+        registrar: comments,
+      },
+      update: {
+        registrar: comments,
+      },
+      where: {
+        studentProfileId: +id,
+      },
+    });
     await prisma.studentProfile.update({
       where: { id: +id },
       data: payload,

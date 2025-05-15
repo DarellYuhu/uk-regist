@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useCreateRegistration } from "@/hooks/features/use-create-registration";
 import { useRegistration } from "@/hooks/features/use-registration";
 import {
@@ -53,6 +54,9 @@ export const StudentPage = () => {
       asalSekolah: "",
       programStudi: "",
       tempatLahir: "",
+      alamat: "",
+      testMatematika: 0,
+      testBahasaInggris: 0,
       tanggalLahir: new Date(),
     },
   });
@@ -91,7 +95,7 @@ export const StudentPage = () => {
                   name="namaIjazah"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nama Ijazah</FormLabel>
+                      <FormLabel>Nama Sesuai Ijazah</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -149,6 +153,19 @@ export const StudentPage = () => {
                             <MailIcon size={16} aria-hidden="true" />
                           </div>
                         </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="alamat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Alamat</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} rows={5} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -247,6 +264,32 @@ export const StudentPage = () => {
                           <DatePicker
                             onChange={(v) => field.onChange(v?.toDate("UTC"))}
                           />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="testMatematika"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Test Matematika</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="number" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="testBahasaInggris"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Test Bahasa Inggris</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="number" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

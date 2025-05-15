@@ -37,6 +37,7 @@ model StudentProfile {
   id                  Int      @id @default(autoincrement())
   nomorIndukMahasiswa String?  @unique
   namaIjazah          String
+  alamat              String   @default("")
   jenisKelamin        String
   email               String
   noTelp              String
@@ -47,6 +48,8 @@ model StudentProfile {
   doctorApproval      Status   @default(WAITING)
   tempatLahir         String
   tanggalLahir        DateTime @db.Date
+  testMatematika      Int      @default(0)
+  testBahasaInggris   Int      @default(0)
 
   userId String @unique
   User   User   @relation(fields: [userId], references: [id])
@@ -54,6 +57,15 @@ model StudentProfile {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   UploadedDocuments UploadedDocuments?
+  RejectionMessage  RejectionMessage?
+}
+
+model RejectionMessage {
+  studentProfileId Int            @unique
+  StudentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id])
+
+  doctor    String?
+  registrar String?
 }
 
 model UploadedDocuments {
